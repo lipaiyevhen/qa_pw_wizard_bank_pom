@@ -29,3 +29,17 @@ export default defineConfig({
     },
   ],
 });
+
+/** @type {import('@playwright/test').PlaywrightTestConfig} */
+const config = {
+  testDir: 'tests',
+  timeout: 30_000,
+  use: {
+    headless: true,
+    baseURL: 'https://www.globalsqa.com', // <- reliable navigation
+    actionTimeout: 10_000,
+    navigationTimeout: 30_000,
+  },
+  // ...existing code...
+};
+module.exports = config;
