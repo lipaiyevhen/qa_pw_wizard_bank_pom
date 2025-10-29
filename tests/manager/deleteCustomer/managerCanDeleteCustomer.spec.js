@@ -1,24 +1,38 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import BankHomePage from '../../../src/pages/BankHomePage';
+import AddCustomerPage from '../../../src/pages/manager/AddCustomerPage';
+import CustomersListPage from '../../../src/pages/manager/CustomersListPage';
+
+let firstName, lastName, postCode;
 
 test.beforeEach(async ({ page }) => {
-  /* 
-  Pre-conditons:
-  1. Open Add Customer page.
-  2. Fill the First Name.  
-  3. Fill the Last Name.
-  4. Fill the Postal Code.
-  5. Click [Add Customer].
-  */
+  firstName = faker.person.firstName();
+  lastName = faker.person.lastName();
+  postCode = faker.location.zipCode('#####');
+
+  const bankHomePage = new BankHomePage(page);
+  const addCustomerPage = new AddCustomerPage(page);
+
+  await bankHomePage.open();
+  await bankHomePage.clickManagerLoginButton();
+
+  await addCustomerPage.open();
+  page.once('dialog', dialog => dialog.accept());
+  await addCustomerPage.addCustomer(firstName, lastName, postCode);
+  await page.reload();
 });
 
 test('Assert manager can delete customer', async ({ page }) => {
-  /* 
-  Test:
-  1. Open Customers page.
-  2. Click [Delete] for the row with customer name.
-  3. Assert customer row is not present in the table. 
-  4. Reload the page.
-  5. Assert customer row is not present in the table. 
-  */
+  const customersPage = new CustomersListPage(page);
+
+  await customersPage.open();
+  await customersPage.searchCustomer(firstName);
+  // wait then delete
+  await customersPage.deleteCustomer(`${firstName} ${lastName}`);
+  // reload and verify removed
+  await page.reload();
+  await customersPage.open();
+  await customersPage.searchCustomer(firstName);
+  await customersPage.verifyCustomerIsNotPresent(`${firstName} ${lastName}`);
 });
